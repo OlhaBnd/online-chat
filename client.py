@@ -1,26 +1,25 @@
-from socket import *
-import threading
+from socket import *             # Імпортуємо бібліотеку socket для спілкування по мережі
+import threading                 # Імпортуємо threading для багатозадачності
 
-client_socket = socket(AF_INET, SOCK_STREAM)
-name = input("Введіть ім'я: ")
-client_socket.connect(('0.tcp.eu.ngrok.io', 16775))
-client_socket.send(name.encode())
+client_socket = socket(AF_INET, SOCK_STREAM)  # Створюємо сокет для підключення до сервера
+name = input("Введіть ім'я: ")                # Запитуємо ім’я у користувача
+client_socket.connect(('0.tcp.eu.ngrok.io', 16775))  # Підключаємося до сервера по IP/домену та порту
+client_socket.send(name.encode())             # Відправляємо ім’я серверу
 
+def send_message():                           # Функція для відправки повідомлень
+    while True:
+        client_message = input()               # Чекаємо, що користувач введе
+        if client_message.lower() == 'exit':   # Якщо він написав "exit"
+            client_socket.close()              # Закриваємо з’єднання
+            break                              # Виходимо з циклу
+        client_socket.send(client_message.encode())  # Відправляємо повідомлення на сервер
 
-def send_message():
-   while True:
-       client_message = input()
-       if client_message.lower() == 'exit':
-           client_socket.close()
-           break
-       client_socket.send(client_message.encode())
+threading.Thread(target=send_message).start()  # Запускаємо потік для відправки повідомлень
 
-
-threading.Thread(target=send_message).start() # запуск потока відправки повідомлень
-while True:
-   try:
-       message = client_socket.recv(1024).decode().strip()
-       if message:
-           print(message)
-   except:
-       break
+while True:                                    # Основний цикл для отримання повідомлень
+    try:
+        message = client_socket.recv(1024).decode().strip()  # Отримуємо повідомлення від сервера
+        if message:                             # Якщо повідомлення не порожнє
+            print(message)                      # Виводимо його на екран
+    except:
+        break                                   # Якщо помилка — виходимо з циклу
